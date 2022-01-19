@@ -1,22 +1,19 @@
 #!/bin/bash
 
-FIFO=/var/run/pushnot_fifo
+FILE=/home/adminuser/chat.log
 
-function forward_from_stdin_to_fifo {
-  local inMessage=
-  while IFS=$'\n' read inMessage; do
-    [[ -n "${inMessage}" ]] && printf '%s\n' "${inMessage}" >> "${FIFO}"
-  done
+USERID=${QUERY_STRING#userid=}
+
+function forward_from_stdin_to_file {
+  while read MSG; do echo "[$(date)] ${USERID}>${MSG}" >> $FILE; done
 }
 
-function forward_from_fifo_to_stdout {
-  local inMessage=
-  while read -r inMessage < "${FIFO}"; do
-   [[ -n "${inMessage}" ]] && printf '%s\n' "${inMessage}" 
-  done
+function forward_from_file_to_stdout {
+  tail -n 0 -f $FILE --pid=$$
 }
 
-forward_from_fifo_to_stdout &
-forward_from_stdin_to_fifo 
+forward_from_file_to_stdout &
+sleep 0.1
+echo "${USERID} joined." >> $FILE
 
-
+forward_from_stdin_to_file

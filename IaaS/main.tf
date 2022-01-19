@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "rg" {
   }
 }
 
-resource "azurerm_virtual_network" "cs-virtual-network" {
+resource "azurerm_virtual_network" "cs-vnet" {
   name                = "cloud-school-virtual-network"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
@@ -34,8 +34,19 @@ resource "azurerm_virtual_network" "cs-virtual-network" {
 resource "azurerm_subnet" "cs-subnet" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.cs-virtual-network.name
+  virtual_network_name = azurerm_virtual_network.cs-vnet.name
   address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "cs-pubip" {
+  name                = "cloud-school-public-ip"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+
+  tags = {
+    environment = "dev"
+  }
 }
 
 resource "azurerm_network_interface" "cs-nic" {
@@ -47,6 +58,7 @@ resource "azurerm_network_interface" "cs-nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.cs-subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.cs-pubip.id
   }
 }
 
@@ -79,7 +91,7 @@ resource "azurerm_linux_virtual_machine" "cs-vm" {
   }
 }
 
-resource "azurerm_dev_test_global_vm_shutdown_schedule" "rg" {
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "cs-vm-schedule" {
   virtual_machine_id = azurerm_linux_virtual_machine.cs-vm.id
   location           = azurerm_resource_group.rg.location
   enabled            = true

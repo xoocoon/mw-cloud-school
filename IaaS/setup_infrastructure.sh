@@ -1,7 +1,9 @@
+#!/bin/sh
 
 CLOUDSCHOOL_SUBSCRIPTION_ID=4405c0b5-f638-4e0a-b7e4-c4899d4c8efe
+LOCAL_BASEDIR=/mnt/d/Entwicklung/mw-cloud-school/IaaS
 
-cd /mnt/d/Entwicklung/mw-cloud-school/IaaS
+cd $LOCAL_BASEDIR
 
 terraform init
 
@@ -17,3 +19,11 @@ terraform plan
 terraform import azurerm_resource_group.rg /subscriptions/$CLOUDSCHOOL_SUBSCRIPTION_ID/resourceGroups/Matthias_Ostermaier
 
 terraform apply
+
+# register SSH in the local shell to be able to connect
+mkdir -p ~/.ssh
+# the following private key file must be in OpenSSH format (may be converted in PuttyGen)
+cp keys/id_rsa ~/.ssh/
+cp keys/id_rsa.pub ~/.ssh/
+chmod -R 700 ~/.ssh
+
